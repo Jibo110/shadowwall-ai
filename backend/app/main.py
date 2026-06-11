@@ -16,7 +16,7 @@ Architecture note:
 
 from contextlib import asynccontextmanager
 from typing import AsyncGenerator
-
+from app.db.engine import close_db, init_db
 import structlog
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -75,12 +75,18 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     # Placeholder: database pool init comes in Day 3
     # Placeholder: Redis connection comes in Day 3
 
+   # Verify database connectivity
+    await init_db()
+
     logger.info("shadowwall_ai_ready")
 
     yield  # Application runs here
 
     # --- SHUTDOWN ---
     logger.info("shadowwall_ai_shutting_down")
+
+    # Close database connection pool gracefully
+    await close_db()
 
     # Placeholder: close database pool
     # Placeholder: close Redis connection

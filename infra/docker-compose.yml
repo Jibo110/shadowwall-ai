@@ -1,0 +1,82 @@
+# ============================================================
+# ShadowWall AI — Local Development Infrastructure
+# ============================================================
+# Runs PostgreSQL and Redis in isolated Docker containers.
+# No need to install either service directly on Windows.
+#
+# Commands:
+#   Start:   docker compose up -d
+#   Stop:    docker compose down
+#   Logs:    docker compose logs -f
+#   Reset:   docker compose down -v  (WARNING: deletes all data)
+# ============================================================
+
+services:
+  # ----------------------------------------------------------
+  # PostgreSQL — Primary database
+  # Stores honey tokens, events, users, agent decisions
+  # ----------------------------------------------------------
+  postgres:
+    image: postgres:16-alpine
+    # alpine = minimal image, smaller attack surface
+    container_name: shadowwall_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: shadowwall
+      POSTGRES_PASSWORD: shadowwall_pass
+      POSTGRES_DB: shadowwall_db
+      # Performance tuning for development
+      POSTGRES_INITDB_ARGS: "--encoding=UTF-8"
+    ports:
+      - "5432:5432"
+      # host_port:container_port
+      # Your app connects to localhost:5432
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      # Named volume = data persists when container restarts
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U shadowwall -d shadowwall_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      # Docker will wait for this check to pass before
+      # marking the container as healthy
+
+  # ----------------------------------------------------------
+  # Redis — Cache + Pub/Sub message broker
+  # Powers real-time WebSocket event streaming
+  # ----------------------------------------------------------
+  redis:
+    image: redis:7-alpine
+    container_name: shadowwall_redis
+    restart: unless-stopped
+    command: >
+      redis-server
+      --requirepass shadowwall_redis_pass
+      --maxmemory 256mb
+      --maxmemory-policy allkeys-lru
+      --appendonly yes
+    # --requirepass = authentication required (security)
+    # --maxmemory = cap memory usage
+    # --maxmemory-policy allkeys-lru = evict least recently used
+    # --appendonly yes = persist data to disk
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "shadowwall_redis_pass", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+# ----------------------------------------------------------
+# Named Volumes
+# Docker manages these. Data survives container restarts.
+# 'docker compose down -v' deletes them (use carefully).
+# ----------------------------------------------------------
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
