@@ -26,7 +26,7 @@ from slowapi.util import get_remote_address
 
 from app.core.config import get_settings
 from app.core.logging import get_logger, setup_logging
-
+from app.api.v1.router import api_router
 # ----------------------------------------------------------------
 # Bootstrap logging FIRST — before anything else.
 # If logging fails, we want to know immediately.
@@ -149,7 +149,8 @@ async def health_check() -> dict:
         "environment": settings.app_env,
     }
 
-
+# Mount all API routes under /api/v1
+app.include_router(api_router)
 # ----------------------------------------------------------------
 # Root endpoint
 # ----------------------------------------------------------------
