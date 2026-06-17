@@ -17,8 +17,7 @@ from datetime import datetime, timezone
 
 from sqlalchemy import Boolean, DateTime, Enum, String, Text
 from sqlalchemy.dialects.postgresql import UUID
-from sqlalchemy.orm import Mapped, mapped_column
-
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.db.engine import Base
 
 
@@ -152,6 +151,14 @@ class HoneyToken(Base):
         DateTime(timezone=True),
         nullable=True,
         comment="Timestamp of first trigger event",
+    )
+
+    # Relationship — access all events for this token
+    events: Mapped[list["TriggerEvent"]] = relationship(  # type: ignore[name-defined]
+        "TriggerEvent",
+        back_populates="token",
+        lazy="select",
+        cascade="all, delete-orphan",
     )
 
     def __repr__(self) -> str:
