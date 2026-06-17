@@ -1,0 +1,75 @@
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * {
+    box-sizing: border-box;
+  }
+
+  body {
+    @apply bg-cyber-bg text-cyber-text font-mono;
+    margin: 0;
+    padding: 0;
+    min-height: 100vh;
+  }
+
+  ::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  ::-webkit-scrollbar-track {
+    @apply bg-cyber-bg;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    @apply bg-cyber-border rounded-full;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-cyber-muted;
+  }
+}
+
+@layer components {
+  .card {
+    @apply bg-cyber-surface border border-cyber-border rounded-lg p-4;
+  }
+
+  .card-glow {
+    @apply card;
+    box-shadow: 0 0 20px rgba(0, 212, 255, 0.05);
+  }
+
+  .badge-active {
+    @apply bg-cyber-success/10 text-cyber-success border border-cyber-success/20
+           text-xs px-2 py-0.5 rounded-full;
+  }
+
+  .badge-triggered {
+    @apply bg-cyber-danger/10 text-cyber-danger border border-cyber-danger/20
+           text-xs px-2 py-0.5 rounded-full;
+  }
+
+  .badge-low {
+    @apply bg-cyber-success/10 text-cyber-success border border-cyber-success/20
+           text-xs px-2 py-0.5 rounded-full;
+  }
+
+  .badge-medium {
+    @apply bg-cyber-warning/10 text-cyber-warning border border-cyber-warning/20
+           text-xs px-2 py-0.5 rounded-full;
+  }
+
+  .badge-high {
+    @apply bg-cyber-danger/10 text-cyber-danger border border-cyber-danger/20
+           text-xs px-2 py-0.5 rounded-full;
+  }
+
+  .badge-critical {
+    @apply bg-cyber-critical/20 text-cyber-critical border border-cyber-critical/30
+           text-xs px-2 py-0.5 rounded-full animate-pulse;
+  }
+}
