@@ -8,6 +8,9 @@ and real-time WebSocket broadcasting.
 import uuid
 from datetime import datetime, timezone
 
+import asyncio
+from app.db.engine import AsyncSessionFactory
+
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.logging import get_logger
@@ -86,7 +89,54 @@ class EventService:
             source_ip=data.source_ip,
         )
 
+        # ----------------------------------------------------------------
+        # Launch AI agent analysis as a background task.
+        # We do NOT await this — it runs after the HTTP response
+        # is returned. The dashboard gets an immediate WebSocket
+        # alert now, and a second update when the agent finishes.
+        # ----------------------------------------------------------------
+        asyncio.create_task(
+            self._run_agent_analysis(
+                event_id=event.id,
+                token=token,
+                data=data,
+            )
+        )
+
         return TriggerEventResponse.model_validate(event)
+
+    async def _run_agent_analysis(
+        self,
+        event_id: uuid.UUID,
+        token: object,
+        data: "TriggerEventCreate",
+    ) -> None:
+        """
+        Runs the LangGraph agent in a background task.
+        Creates its own database session — the original session
+        may be closed by the time the agent finishes.
+        """
+        from app.services.agent import AgentService
+
+        try:
+            async with AsyncSessionFactory() as agent_session:
+                agent_service = AgentService(agent_session)
+                await agent_service.analyze_trigger(
+                    event_id=event_id,
+                    token_id=token.id,
+                    token_label=token.label,
+                    token_type=token.token_type,
+                    source_ip=data.source_ip,
+                    user_agent=data.user_agent,
+                    request_method=data.request_method,
+                    request_path=data.request_path,
+                )
+        except Exception as e:
+            logger.error(
+                "background_agent_task_failed",
+                event_id=str(event_id),
+                error=str(e),
+            )
 
     async def get_recent_events(
         self,

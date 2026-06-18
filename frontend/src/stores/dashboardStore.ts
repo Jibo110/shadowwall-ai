@@ -107,6 +107,24 @@ export const useDashboardStore = create<DashboardState>((set, get) => ({
         created_at: message.payload.timestamp as string,
       };
 
+      if (message.type === "agent_analysis_complete" && message.payload) {
+      // Update the event in the feed with agent findings
+      const updatedEvents = get().events.map((e) =>
+        e.id === message.payload!.event_id
+          ? {
+              ...e,
+              severity: message.payload!.severity as TriggerEvent["severity"],
+              agent_analysis: message.payload!.summary as string,
+            }
+          : e
+      );
+      const { tokens, isConnected } = get();
+      set({
+        events: updatedEvents,
+        stats: computeStats(tokens, updatedEvents, isConnected),
+      });
+    }
+
       // Prepend new event — newest first
       const updatedEvents = [newEvent, ...events].slice(0, 100);
 
