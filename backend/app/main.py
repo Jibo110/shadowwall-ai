@@ -27,6 +27,8 @@ from slowapi.util import get_remote_address
 from app.core.config import get_settings
 from app.core.logging import get_logger, setup_logging
 from app.api.v1.router import api_router
+
+from app.core.middleware import SecurityHeadersMiddleware
 # ----------------------------------------------------------------
 # Bootstrap logging FIRST — before anything else.
 # If logging fails, we want to know immediately.
@@ -111,6 +113,10 @@ app = FastAPI(
 # Middleware Stack
 # Order matters — middleware executes in reverse registration order.
 # ----------------------------------------------------------------
+
+# 0. Security Headers — must be first
+# app.add_middleware(SecurityHeadersMiddleware)
+
 
 # 1. Rate Limiting
 app.state.limiter = limiter

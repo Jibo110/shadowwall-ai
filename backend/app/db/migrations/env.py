@@ -22,6 +22,7 @@ from app.db.engine import Base
 # Every new model file you create must be imported here.
 from app.db.models import token  # noqa: F401
 from app.db.models import event  # noqa: F401
+from app.db.models import user  # noqa: F401
 
 # Alembic config object — reads from alembic.ini
 config = context.config

@@ -28,6 +28,10 @@ from app.schemas.token import (
 )
 from app.services.token import TokenService
 
+from app.api.v1.dependencies import get_current_user
+from app.db.models.user import User
+
+
 logger = get_logger(__name__)
 
 # APIRouter groups related endpoints together.
@@ -64,11 +68,14 @@ async def get_token_service(
         "The token value is stored securely and monitored for unauthorized access."
     ),
 )
+
+@router.post("/", response_model=TokenResponse, status_code=201)
 async def create_token(
     payload: TokenCreate,
     service: TokenService = Depends(get_token_service),
+    current_user: User = Depends(get_current_user),
 ) -> TokenResponse:
-    logger.info("api_create_token", label=payload.label, token_type=payload.token_type)
+    logger.info("api_create_token", label=payload.label, user_id=str(current_user.id))
     return await service.create_token(payload)
 
 
@@ -91,6 +98,8 @@ async def list_tokens(
         description="Filter by token status",
     ),
     service: TokenService = Depends(get_token_service),
+        current_user: User = Depends(get_current_user),
+
 ) -> TokenListResponse:
     return await service.list_tokens(
         page=page,
@@ -112,6 +121,8 @@ async def list_tokens(
 async def get_token(
     token_id: uuid.UUID,
     service: TokenService = Depends(get_token_service),
+        current_user: User = Depends(get_current_user),
+
 ) -> TokenResponse:
     return await service.get_token(token_id)
 
@@ -130,6 +141,8 @@ async def update_token(
     token_id: uuid.UUID,
     payload: TokenUpdate,
     service: TokenService = Depends(get_token_service),
+        current_user: User = Depends(get_current_user),
+
 ) -> TokenResponse:
     return await service.update_token(token_id, payload)
 
@@ -145,5 +158,7 @@ async def update_token(
 async def delete_token(
     token_id: uuid.UUID,
     service: TokenService = Depends(get_token_service),
+        current_user: User = Depends(get_current_user),
+
 ) -> dict:
     return await service.delete_token(token_id)

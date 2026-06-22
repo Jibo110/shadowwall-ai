@@ -19,6 +19,9 @@ from app.schemas.event import TriggerEventCreate, TriggerEventResponse
 from app.services.event import EventService
 from app.websocket.manager import manager
 
+from app.api.v1.dependencies import get_current_user
+from app.db.models.user import User
+
 logger = get_logger(__name__)
 
 router = APIRouter(tags=["Events"])
@@ -94,6 +97,8 @@ async def websocket_endpoint(websocket: WebSocket) -> None:
 async def trigger_event(
     payload: TriggerEventCreate,
     service: EventService = Depends(get_event_service),
+        current_user: User = Depends(get_current_user),
+
 ) -> TriggerEventResponse:
     return await service.record_trigger(payload)
 
@@ -110,6 +115,8 @@ async def trigger_event(
 async def get_recent_events(
     limit: int = 100,
     service: EventService = Depends(get_event_service),
+        current_user: User = Depends(get_current_user),
+
 ) -> list[TriggerEventResponse]:
     return await service.get_recent_events(limit=limit)
 
@@ -126,5 +133,7 @@ async def get_recent_events(
 async def get_token_events(
     token_id: uuid.UUID,
     service: EventService = Depends(get_event_service),
+        current_user: User = Depends(get_current_user),
+
 ) -> list[TriggerEventResponse]:
     return await service.get_events_for_token(token_id)
