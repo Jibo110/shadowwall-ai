@@ -10,7 +10,11 @@ import { SeverityChart } from "@/components/dashboard/SeverityChart";
 import { ConnectionStatus } from "@/components/ui/ConnectionStatus";
 import type { WebSocketMessage } from "@/types";
 
-export function Dashboard() {
+interface DashboardProps {
+  onLogout: () => void;
+}
+
+export function Dashboard({ onLogout }: DashboardProps) {
   const {
     tokens,
     events,
@@ -29,7 +33,7 @@ export function Dashboard() {
     (message: WebSocketMessage) => {
       handleWebSocketMessage(message);
     },
-    [handleWebSocketMessage]
+    [handleWebSocketMessage],
   );
 
   const { isConnected: wsConnected } = useWebSocket(onMessage);
@@ -83,21 +87,26 @@ export function Dashboard() {
               </div>
             )}
             <ConnectionStatus isConnected={isConnected} />
+            <button
+              onClick={onLogout}
+              className="text-xs text-cyber-muted hover:text-cyber-danger transition-colors border border-cyber-border hover:border-cyber-danger/50 rounded px-3 py-1"
+            >
+              Logout
+            </button>
           </div>
         </div>
       </header>
 
       {/* Main content */}
       <main className="max-w-7xl mx-auto px-4 py-6 flex flex-col gap-6">
-
         {/* Alert banner — shows when tokens are triggered */}
         {stats.triggeredTokens > 0 && (
           <div className="border border-cyber-danger/50 bg-cyber-danger/5 rounded-lg px-4 py-3 flex items-center gap-3 animate-fade-in">
             <div className="w-2 h-2 rounded-full bg-cyber-danger animate-pulse" />
             <span className="text-cyber-danger text-sm font-semibold">
               ALERT: {stats.triggeredTokens} honey token
-              {stats.triggeredTokens > 1 ? "s" : ""} triggered —
-              unauthorized access detected
+              {stats.triggeredTokens > 1 ? "s" : ""} triggered — unauthorized
+              access detected
             </span>
           </div>
         )}
@@ -117,7 +126,6 @@ export function Dashboard() {
 
         {/* Token table */}
         <TokenTable tokens={tokens} />
-
       </main>
     </div>
   );

@@ -21,6 +21,26 @@ const api = axios.create({
   timeout: 10000,
 });
 
+// Attach JWT token to every request automatically
+api.interceptors.request.use((config) => {
+  const token = localStorage.getItem("shadowwall_token");
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
+
+// Handle 401 responses — token expired, redirect to login
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401) {
+      localStorage.removeItem("shadowwall_token");
+      window.location.reload();
+    }
+    return Promise.reject(error);
+  },
+);
 // ----------------------------------------------------------------
 // Token endpoints
 // ----------------------------------------------------------------
